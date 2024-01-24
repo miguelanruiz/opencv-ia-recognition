@@ -1,3 +1,12 @@
 <resources>
     <string name="app_name">OpenCVCamera</string>
+    <string name="nav_header_title">OpenCV Camera</string>
+    <string name="nav_header_subtitle">OpenCV Camera</string>
+    <string name="nav_camera">Cámara</string>
+    <string name="nav_gallery">Galería</string>
+    <string name="button_take_photos">Tomar fotos</string>
+    <string name="button_process_photos">Procesar</string>
+    <string name="button_reset_db">Reiniciar PCA</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

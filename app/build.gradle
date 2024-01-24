@@ -1,50 +1,83 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 34
     defaultConfig {
-        applicationId "com.harish.test.opencvcamera"
-        minSdkVersion 19
-        targetSdkVersion 26
+        applicationId "com.example.opencv"
+        minSdkVersion 28
+        targetSdkVersion 34
         versionCode 1
         versionName "1.0"
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        namespace 'com.example.opencv' // Added namespace
+        externalNativeBuild {
+            cmake {
+                arguments "-DOpenCV_DIR=" + project(':opencv').projectDir + "/native/jni",
+                        "-DANDROID_TOOLCHAIN=clang",
+                        "-DANDROID_STL=c++_shared"
+                cppFlags ''
+            }
+        }
+        javaCompileOptions {
+            annotationProcessorOptions {
+                arguments = ["room.schemaLocation": "$projectDir/schemas".toString()]
+            }
+        }
     }
     buildTypes {
         release {
             minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    //sourceSets { main { jni.srcDirs = ['src/main/jni', 'src/main/jniLibs/'] } }
-    sourceSets {
-        main {
-            jni.srcDirs = []
+    ndkVersion '26.1.10909125'
+    externalNativeBuild {
+        cmake {
+            path 'src/main/java/cpp/CMakeLists.txt'
         }
     }
-    tasks.all { task ->
-        if (task.name.startsWith('compile') && task.name.endsWith('Ndk')) {
-            task.enabled = false
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+
+        allprojects {
+            tasks.withType(JavaCompile).tap {
+                configureEach {
+                    options.compilerArgs.add('-Xlint:deprecation')
+                }
+            }
         }
     }
-    task ndkBuild(type: Exec, description: 'Compile JNI source via NDK') {
-        commandLine "C:/Users/hdv98/AppData/Local/Android/sdk/ndk-bundle/ndk-build.cmd",
-                'NDK_PROJECT_PATH=build/intermediates/ndk',
-                'NDK_LIBS_OUT=src/main/jniLibs',
-                'APP_BUILD_SCRIPT=src/main/jni/Android.mk',
-                'NDK_APPLICATION_MK=src/main/jni/Application.mk'
-    }
-    tasks.withType(JavaCompile) {
-        compileTask -> compileTask.dependsOn ndkBuild
+    lintOptions {
+        abortOnError true
+
+        checkAllWarnings true
+
+        textReport true
+        textOutput 'stdout'
+
+        fatal 'NewApi', 'InlineApi'
+        error 'Wakelock', 'TextViewEdits'
+        warning 'ResourceAsColor'
+        ignore 'TypographyQuotes'
     }
 }
 
 dependencies {
-    implementation fileTree(include: ['*.jar'], dir: 'libs')
-    implementation 'com.android.support:appcompat-v7:26.1.0'
-    implementation 'com.android.support.constraint:constraint-layout:1.0.2'
+    def room_version = "2.6.1"
+
+    implementation "androidx.room:room-common:$room_version"
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+    testImplementation "androidx.room:room-testing:$room_version"
+
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.12.0'
+
+    implementation project(':opencv')
+    implementation 'com.google.android.material:material:1.11.0'
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    implementation project(':openCVLibrary-v2.4.9')
 }
